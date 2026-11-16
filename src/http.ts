@@ -63,15 +63,14 @@ const httpServer = createServer(async (req, res) => {
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
   try {
     await server.connect(transport);
-    await transport.handleRequest(req, res);
-  } catch (error) {
-    console.error('MCP request failed', error instanceof Error ? error.message : 'unknown error');
-    if (!res.headersSent) respond(res, 500, 'Internal server error');
-  } finally {
     res.once('close', () => {
       void transport.close();
       void server.close();
     });
+    await transport.handleRequest(req, res);
+  } catch (error) {
+    console.error('MCP request failed', error instanceof Error ? error.message : 'unknown error');
+    if (!res.headersSent) respond(res, 500, 'Internal server error');
   }
 });
 const port = Number(process.env.PORT ?? 3000);
